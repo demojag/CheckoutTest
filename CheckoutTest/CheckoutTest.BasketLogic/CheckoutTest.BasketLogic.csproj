@@ -43,7 +43,6 @@
     <Compile Include="Basket.cs" />
     <Compile Include="BasketItem.cs" />
     <Compile Include="CatalogItem.cs" />
-    <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
