@@ -6,44 +6,45 @@ namespace CheckoutTest.BasketLogic
 {
     public class Basket
     {
-        public List<BasketItem> ItemsInBasket { get; private set; }
+        private List<BasketItem> _itemsInBasket;
 
         public Basket(List<BasketItem> itemsInBasket)
         {
-            ItemsInBasket = itemsInBasket;
+            _itemsInBasket = itemsInBasket;
         }
 
-        public void AddItemToBasket(BasketItem item)
+        public void UpdateBasketItemQuantity(BasketItem item)
         {
-            var basketItems = ItemsInBasket.SingleOrDefault(i => i.CatalogItem.ItemId == item.CatalogItem.ItemId);
-            if (basketItems == null)
+            var basketItem = _itemsInBasket.SingleOrDefault(i => i.CatalogItem.ItemId == item.CatalogItem.ItemId);
+            if (basketItem == null)
             {
-                ItemsInBasket.Add(item);
+                _itemsInBasket.Add(new BasketItem(item));
             }
             else
             {
-                basketItems.SetQuantity(basketItems.Quantity + 1);
+                basketItem.SetQuantity(basketItem.Quantity + item.Quantity);
+                if (basketItem.Quantity < 0) basketItem.SetQuantity(0);
             }
         }
 
         public bool IsItemInBasket(String itemId)
         {
-            return ItemsInBasket.SingleOrDefault(i => i.CatalogItem.ItemId == itemId) != null;
+            return _itemsInBasket.SingleOrDefault(i => i.CatalogItem.ItemId == itemId) != null;
         }
 
 
         public bool RemoveItem(string itemId)
         {
             if (!IsItemInBasket(itemId)) return false;
-            var basketItem = ItemsInBasket.Single(item => item.CatalogItem.ItemId == itemId);
-            ItemsInBasket.Remove(basketItem);
+            var basketItem = _itemsInBasket.Single(item => item.CatalogItem.ItemId == itemId);
+            _itemsInBasket.Remove(basketItem);
             return true;
 
         }
 
         public void EmptyBasket()
         {
-            ItemsInBasket = new List<BasketItem>();
+            _itemsInBasket = new List<BasketItem>();
         }
 
         //ideally i would model a price with an object containing the different breakdowns, total, with VAT, 
@@ -52,9 +53,19 @@ namespace CheckoutTest.BasketLogic
         // https://refactoring.guru/smells/primitive-obsession
         public double GetTotalPrice()
         {
-            return ItemsInBasket.Select(s => s.CatalogItem.Price).Sum();
+            return _itemsInBasket.Select(s => s.CatalogItem.Price).Sum();
         }
 
+        public int ReturnItemQuantity(string itemId)
+        {
+            if(IsItemInBasket(itemId))
+            return _itemsInBasket.Single(i => i.CatalogItem.ItemId == itemId).Quantity;
+            return 0;
+        }
 
+        public int ReturnTotalQuantity()
+        {
+            return _itemsInBasket.Sum(s => s.Quantity);
+        }
     }
 }

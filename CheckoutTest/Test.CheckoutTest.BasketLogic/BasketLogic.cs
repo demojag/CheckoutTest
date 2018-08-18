@@ -12,14 +12,14 @@ namespace Test.CheckoutTest.BasketLogic
         public void Create_a_basket_and_add_an_item()
         {
             const int expectedQuantity = 1;
-            CatalogItem expectedItem =new CatalogItem ("Item 1", "1234item", 10.50 );
+            var expectedItem =new CatalogItem ("Item 1", "1234item", 10.50 );
 
-            Basket basket = new Basket(new List<BasketItem>());
-            BasketItem basketItem = new BasketItem(new CatalogItem("Item 1", "1234item" , 10.50), 1 );
+            var basket = new Basket(new List<BasketItem>());
+            var basketItem = new BasketItem(new CatalogItem("Item 1", "1234item" , 10.50), 1 );
 
-            basket.AddItemToBasket(basketItem);
+            basket.UpdateBasketItemQuantity(basketItem);
 
-            Assert.AreEqual(basket.ItemsInBasket.Count, expectedQuantity);
+            Assert.AreEqual(basket.ReturnTotalQuantity() , expectedQuantity);
             Assert.AreEqual(basketItem.CatalogItem, expectedItem);
         }
 
@@ -27,20 +27,20 @@ namespace Test.CheckoutTest.BasketLogic
         public void Remove_an_item_from_existing_basket()
         {
             const int expectedQuantity = 1;
-            CatalogItem expectedItemToBeRemoved = new CatalogItem("Item 1", "1234item", 10.50);
-            CatalogItem expectedItemToStay = new CatalogItem("Item 2", "456item", 33.50);
+            var expectedItemToBeRemoved = new CatalogItem("Item 1", "1234item", 10.50);
+            var expectedItemToStay = new CatalogItem("Item 2", "456item", 33.50);
 
-            Basket basket = new Basket(new List<BasketItem>
+            var basket = new Basket(new List<BasketItem>
             {
                 new BasketItem(expectedItemToBeRemoved,expectedQuantity),
                 new BasketItem(expectedItemToStay,expectedQuantity)
             });
 
-            Assert.AreEqual(basket.ItemsInBasket.Count, 2);
+            Assert.AreEqual(basket.ReturnTotalQuantity(), 2);
 
             basket.RemoveItem(expectedItemToBeRemoved.ItemId);
 
-            Assert.AreEqual(basket.ItemsInBasket.Count, 1);
+            Assert.AreEqual(basket.ReturnTotalQuantity(), 1);
             Assert.IsTrue(basket.IsItemInBasket(expectedItemToStay.ItemId));
             Assert.IsFalse(basket.IsItemInBasket(expectedItemToBeRemoved.ItemId));
 
@@ -50,20 +50,20 @@ namespace Test.CheckoutTest.BasketLogic
         public void Empty_the_whole_basket()
         {
             const int expectedQuantity = 1;
-            CatalogItem expectedItem1 = new CatalogItem("Item 1", "1234item", 10.50);
-            CatalogItem expectedItem2 = new CatalogItem("Item 2", "456item", 33.50);
+            var expectedItem1 = new CatalogItem("Item 1", "1234item", 10.50);
+            var expectedItem2 = new CatalogItem("Item 2", "456item", 33.50);
 
-            Basket basket = new Basket(new List<BasketItem>
+            var basket = new Basket(new List<BasketItem>
             {
                 new BasketItem(expectedItem1,expectedQuantity),
                 new BasketItem(expectedItem2,expectedQuantity)
             });
 
-            Assert.AreEqual(basket.ItemsInBasket.Count, 2);
+            Assert.AreEqual(basket.ReturnTotalQuantity(), 2);
 
             basket.EmptyBasket();
 
-            Assert.AreEqual(basket.ItemsInBasket.Count, 0);
+            Assert.AreEqual(basket.ReturnTotalQuantity(), 0);
 
         }
 
@@ -72,10 +72,10 @@ namespace Test.CheckoutTest.BasketLogic
         {
             const int expectedQuantity = 1;
             const double expectedPrice = 44;
-            CatalogItem expectedItem1 = new CatalogItem("Item 1", "1234item", 10.50);
-            CatalogItem expectedItem2 = new CatalogItem("Item 2", "456item", 33.50);
+            var expectedItem1 = new CatalogItem("Item 1", "1234item", 10.50);
+            var expectedItem2 = new CatalogItem("Item 2", "456item", 33.50);
 
-            Basket basket = new Basket(new List<BasketItem>
+            var basket = new Basket(new List<BasketItem>
             {
                 new BasketItem(expectedItem1,expectedQuantity),
                 new BasketItem(expectedItem2,expectedQuantity)
@@ -83,6 +83,47 @@ namespace Test.CheckoutTest.BasketLogic
 
             Assert.AreEqual(basket.GetTotalPrice() , expectedPrice);
             
+        }
+
+        [TestMethod]
+        public void Increase_quantity_of_existing_item_inBasket()
+        {
+            var expectedItemWithQuantityOne = new BasketItem(new CatalogItem("Item 1", "1234item", 10.50),1);
+            var expectedItemWithQuantityFive = new BasketItem(new CatalogItem("Item 1", "1234item", 10.50),5);
+            var basket = new Basket(new List<BasketItem>());
+
+            basket.UpdateBasketItemQuantity(expectedItemWithQuantityOne);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItemWithQuantityOne.CatalogItem.ItemId) == 1);
+            basket.UpdateBasketItemQuantity(expectedItemWithQuantityOne);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItemWithQuantityFive.CatalogItem.ItemId) == 2);
+
+            basket.UpdateBasketItemQuantity(expectedItemWithQuantityFive);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItemWithQuantityFive.CatalogItem.ItemId) == 7);
+
+        }
+
+        [TestMethod]
+        public void Decrase_quantity_of_existing_item_inBasket()
+        {
+            var expectedItem = new BasketItem(new CatalogItem("Item 1", "1234item", 10.50), 5);
+            
+            var basket = new Basket(new List<BasketItem>());
+
+            basket.UpdateBasketItemQuantity(expectedItem);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItem.CatalogItem.ItemId) == 5);
+
+            expectedItem.SetQuantity(-2);
+            basket.UpdateBasketItemQuantity(expectedItem);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItem.CatalogItem.ItemId) == 3);
+
+            expectedItem.SetQuantity(-100);
+            basket.UpdateBasketItemQuantity(expectedItem);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItem.CatalogItem.ItemId) == 0);
+
+            expectedItem.SetQuantity(10);
+            basket.UpdateBasketItemQuantity(expectedItem);
+            Assert.IsTrue(basket.ReturnItemQuantity(expectedItem.CatalogItem.ItemId) == 10);
+
         }
     }
 }
