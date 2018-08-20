@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,18 +14,28 @@ namespace CheckoutTest.BasketLogic
             _itemsInBasket = itemsInBasket;
         }
 
-        public void UpdateBasketItemQuantity(BasketItem item)
+        public void AddItem(BasketItem item)
         {
-            var basketItem = _itemsInBasket.SingleOrDefault(i => i.CatalogItem.ItemId == item.CatalogItem.ItemId);
-            if (basketItem == null)
+            if(item.Quantity <0) throw new Exception("Negative quantities are not supported");
+            
+            if (!IsItemInBasket(item.CatalogItem.ItemId))
             {
                 _itemsInBasket.Add(new BasketItem(item));
             }
             else
             {
+                var basketItem = _itemsInBasket.Single(i => i.CatalogItem.ItemId == item.CatalogItem.ItemId);
                 basketItem.SetQuantity(basketItem.Quantity + item.Quantity);
-                if (basketItem.Quantity < 0) basketItem.SetQuantity(0);
             }
+        }
+
+        public void RemoveItem(BasketItem item)
+        {
+            if (item.Quantity < 0) throw new Exception("Negative quantities are not supported");
+            if(!IsItemInBasket(item.CatalogItem.ItemId)) throw new Exception("Trying to remove an item that is not in the basket");
+            var basketItem = _itemsInBasket.Single(i => i.CatalogItem.ItemId == item.CatalogItem.ItemId);
+            basketItem.SetQuantity(basketItem.Quantity - item.Quantity);
+            if (basketItem.Quantity < 0) basketItem.SetQuantity(0);
         }
 
         public bool IsItemInBasket(String itemId)
